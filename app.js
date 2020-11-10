@@ -4,6 +4,7 @@ const express        = require("express"),
       path           = require("path"),
       morgan         = require("morgan"),
       firebase       = require("firebase"),
+      moment         = require('moment'),
       session        = require("express-session"),
       methodOverride = require("method-override"),
       jwt            = require("jsonwebtoken"),
@@ -19,6 +20,7 @@ app.use(express.json());
 
 //* authentication routes
 //app.use('/auth', require('./routes/auth'));
+app.use('/home', require('./routes/newroutes'));
 
 //* firebase config
 
@@ -118,10 +120,61 @@ app.post("/login", async function (req, res) {
         if (err) return res.send(err);
         return res.status(200).json({
           token,
-        });
-      }
-    );
-  });
+      });
+    }
+  );
+});
+
+//* @desc - creating posts
+//* @route - POST /create
+app.post('/create', async (req, res) => {
+  const { topic, query, body, op } = req.body;
+  const newpost = {
+    author: op,
+    topic: topic,
+    query: query,
+    body: body,
+    createdAt: moment().format("dddd, MMMM Do YYYY, h:mm:ss a")
+  }
+  let strid = '@' + topic + '_' + query + '_' + op;
+  strid = strid.split(' ').join('-');
+
+  try {
+    await db.collection(topic).doc('/' + strid + '/')
+    .set(newpost);
+    return res.status(200).send('');
+  } catch(error) {
+    console.log(error);
+    return res.status(400).send(error);
+  }
+});
+
+app.put('/:post_id/edit', async (req, res) => {
+  const { topic, query, body, op } = req.body;
+  try {
+    
+    const postdocument = db.collection(topic).doc(req.params.post_id);
+    console.log(postdocument);
+    const onepost = await postdocument.get();
+    console.log(onepost);
+    const post = onepost.data();
+    console.log(req.params.post_id);
+    console.log(post);
+    if(op === post.author) {
+      await postdocument.update({
+        query: query,
+        body: body,
+        createdAt: moment().format("dddd, MMMM Do YYYY, h:mm:ss a")
+      });
+      return res.status(200).send('');
+    } else {
+      return res.status(400).send('Not the author');
+    }
+  } catch(error) {
+    console.log(error);
+    return res.status(400).send(error);
+  }
+})
   
 
 app.listen(PORT, (req, res) => {

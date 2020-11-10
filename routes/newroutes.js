@@ -1,7 +1,7 @@
 const express    = require('express'),
       router     = express.Router();
 
-app.get('/home', (req, res) => {
+router.get('/', (req, res) => {
     res.send('Working here');
 })
 
