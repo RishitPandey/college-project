@@ -5,7 +5,7 @@ const express    = require("express"),
       jwt        = require("jsonwebtoken"),
       bcryptjs   = require("bcryptjs"),
       firebase   = require('firebase'),
-      db         = require('../app');
+      db         = require('../firebase-config');
 
 router.post("/signup", async function (req, res) {
   var newuser = {
